@@ -45,13 +45,15 @@ El cifrado negociado no equivale a un inventario completo de todas las suites ha
 Después del análisis, la interfaz muestra:
 
 - Nota A–F, puntaje y riesgo alto/medio/bajo.
+- Cobertura de verificación y estado **“No verificado”** cuando una prueba falla por red o DNS, sin presentarla como aprobada.
 - **“Corrige primero esto”**: las tres acciones con mayor impacto.
 - Resultados agrupados, explicación y configuración sugerida para Apache/Nginx.
 - Progreso visible durante el análisis y tiempo estimado de 15 a 60 segundos.
 - Indicador de disponibilidad y cuenta regresiva exacta cuando el límite temporal está activo.
 - Portada de informe con marca, fecha UTC, dominio auditado y referencia única.
 - Firma visual de emisión de **Green PC** en el informe imprimible/PDF.
-- Selector de idioma para interfaz e informe: español, inglés, francés, italiano, portugués europeo y alemán.\n- Botón **Imprimir / Guardar PDF** para entregar un informe sin almacenar resultados.
+- Selector de idioma para interfaz e informe: español, inglés, francés, italiano, portugués europeo y alemán.
+- Botón **Imprimir / Guardar PDF** para entregar un informe sin almacenar resultados.
 
 La firma incluida acredita la emisión visual de Green PC; no es una firma electrónica certificada. La referencia identifica solo la ejecución actual y no conserva una copia del informe.
 
@@ -68,6 +70,7 @@ No existen cuentas ni historial de auditorías. Para aplicar límites se conserv
 - CSP con nonce en la interfaz; la API acepta solo `POST` con `Content-Type: application/json` y cuerpos de hasta 4 KiB.
 - El dominio introducido no se añade a la URL ni al historial de la aplicación.
 - Las sondas son concurrentes, con timeout y tamaño de respuesta restringidos.
+- El análisis usa un presupuesto global de 50 segundos; las consultas SPF, DMARC y CAA se ejecutan en paralelo y las comprobaciones opcionales pendientes quedan como no verificadas al agotarse el tiempo.
 
 > Los límites basados en archivos son adecuados para una instancia. Para despliegues con múltiples réplicas, usa WAF/Cloudflare y un límite compartido mediante Redis o el balanceador. Consulta [DEPLOYMENT.md](DEPLOYMENT.md).
 
@@ -81,8 +84,8 @@ No existen cuentas ni historial de auditorías. Para aplicar límites se conserv
 ## Instalación local
 
 ```bash
-git clone https://github.com/xacq/web_auditor.git
-cd web_auditor
+git clone https://github.com/xacq/webauditor.git
+cd webauditor
 php -S localhost:8000
 ```
 
@@ -99,7 +102,9 @@ Content-Type: application/json
 {"url":"ejemplo.com","lang":"de"}
 ```
 
-La respuesta incluye `score`, `grade`, `risk`, `summary`, `priorities`, `checks`, datos TLS, cadena de redirecciones, `lang` y `report_id` para el informe actual.\n\n`lang` admite `es`, `en`, `fr`, `it`, `pt-PT` y `de`; se valida contra una lista cerrada y no se almacena. La interfaz y el contexto del PDF se localizan con ese valor; los valores técnicos (cabeceras, protocolos, DNS y configuraciones sugeridas) se conservan literalmente para no alterar evidencia.
+La respuesta usa `schema_version: 2` e incluye `score`, `grade`, `risk`, `coverage`, `analysis_ms`, `summary`, `priorities`, `checks`, datos TLS, cadena de redirecciones, `lang` y `report_id` para el informe actual. Cada control conserva un `id`, un `group_id`, un `message_code` y `message_params` estables. La interfaz usa esos códigos para traducir títulos, explicaciones y soluciones sin depender del texto español de la API, manteniendo valores técnicos como evidencia literal.
+
+`lang` admite `es`, `en`, `fr`, `it`, `pt-PT` y `de`; se valida contra una lista cerrada y no se almacena. La interfaz y el contexto del PDF se localizan con ese valor; los valores técnicos (cabeceras, protocolos, DNS y configuraciones sugeridas) se conservan literalmente para no alterar evidencia.
 
 Cuando se excede un límite se responde con `429 Too Many Requests`, `Retry-After` y `retry_after` (segundos).
 
@@ -110,13 +115,16 @@ El workflow [PHP quality](.github/workflows/php-quality.yml) valida sintaxis en 
 - `tests/security-regression.php`: esquema, puertos y URLs inseguras.
 - `tests/security-helpers.php`: helpers de destino e IPv6.
 - `tests/audit-summary.php`: nivel de riesgo y orden de prioridades.
+- `tests/probe-classification.php`: archivos sensibles, soft-404 y resultados no verificables.
+- `tests/i18n-catalog.php` y `tests/i18n-runtime.js`: cobertura y ejecución de los catálogos traducidos.
 
 ## Estructura
 
 ```text
-web_auditor/
+webauditor/
 ├── api.php                 # Endpoint, orquestación y puntuación
-├── index.php               # Interfaz y generación de informe imprimible
+├── index.php               # Estructura, estilos y carga de la interfaz
+├── assets/app.js           # Lógica de interfaz y catálogos de traducción
 ├── lib/
 │   ├── Target.php          # Validación de destino y resolución segura
 │   ├── Http.php            # Transporte HTTP y redirecciones

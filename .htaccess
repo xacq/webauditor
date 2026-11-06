@@ -14,5 +14,6 @@ Options -Indexes
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    RewriteRule ^\.(?:git|env)(?:/|$) - [F,L,NC]
     RewriteRule ^lib/ - [F,L]
 </IfModule>

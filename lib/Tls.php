@@ -4,7 +4,7 @@ declare(strict_types=1);
 /* ---------- TLS ---------- */
 
 /** Prueba explícitamente los protocolos que el runtime PHP/OpenSSL puede forzar. */
-function tls_protocol_matrix(string $host, string $ip): array
+function tls_protocol_matrix(string $host, string $ip, ?float $deadline = null): array
 {
     $methods = [
         'TLSv1.0' => 'STREAM_CRYPTO_METHOD_TLSv1_0_CLIENT',
@@ -14,6 +14,11 @@ function tls_protocol_matrix(string $host, string $ip): array
     ];
     $results = [];
     foreach ($methods as $label => $constant) {
+        $timeout = timeout_for_deadline($deadline, 3);
+        if ($timeout < 1) {
+            $results[$label] = null;
+            continue;
+        }
         if (!defined($constant)) {
             $results[$label] = null;
             continue;
@@ -28,7 +33,7 @@ function tls_protocol_matrix(string $host, string $ip): array
         ]]);
         $errno = 0;
         $errstr = '';
-        $fp = @stream_socket_client(socket_endpoint($ip), $errno, $errstr, 3, STREAM_CLIENT_CONNECT, $ctx);
+        $fp = @stream_socket_client(socket_endpoint($ip), $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, $ctx);
         $results[$label] = $fp !== false;
         if ($fp) {
             fclose($fp);
@@ -37,10 +42,15 @@ function tls_protocol_matrix(string $host, string $ip): array
     return $results;
 }
 
-function tls_probe(string $host, string $ip): array
+function tls_probe(string $host, string $ip, ?float $deadline = null): array
 {
     $out = ['ok' => false, 'valid' => false, 'error' => null, 'supported_protocols' => []];
     foreach ([true, false] as $verify) {
+        $timeout = timeout_for_deadline($deadline, 6);
+        if ($timeout < 1) {
+            $out['error'] = 'Se agotó el tiempo total del análisis.';
+            break;
+        }
         $ctx = stream_context_create(['ssl' => [
             'capture_peer_cert'  => true,
             'verify_peer'        => $verify,
@@ -51,7 +61,7 @@ function tls_probe(string $host, string $ip): array
         ]]);
         $errno = 0;
         $errstr = '';
-        $fp = @stream_socket_client(socket_endpoint($ip), $errno, $errstr, 6, STREAM_CLIENT_CONNECT, $ctx);
+        $fp = @stream_socket_client(socket_endpoint($ip), $errno, $errstr, $timeout, STREAM_CLIENT_CONNECT, $ctx);
         if (!$fp) {
             if ($verify) {
                 $out['error'] = $errstr ?: 'fallo en el handshake TLS';
@@ -83,7 +93,7 @@ function tls_probe(string $host, string $ip): array
         break;
     }
     if ($out['ok']) {
-        $out['supported_protocols'] = tls_protocol_matrix($host, $ip);
+        $out['supported_protocols'] = tls_protocol_matrix($host, $ip, $deadline);
     }
     return $out;
 }

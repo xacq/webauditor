@@ -53,6 +53,15 @@ function socket_endpoint(string $ip, int $port = 443): string
     return 'ssl://' . (str_contains($ip, ':') ? '[' . $ip . ']' : $ip) . ':' . $port;
 }
 
+/** Ajusta un timeout individual al presupuesto restante del análisis. */
+function timeout_for_deadline(?float $deadline, int $maximum): int
+{
+    if ($deadline === null) {
+        return $maximum;
+    }
+    return max(0, min($maximum, (int) ceil($deadline - microtime(true))));
+}
+
 /** Resuelve A y AAAA y exige que TODAS las direcciones sean públicas. */
 function resolve_public(string $host): string
 {

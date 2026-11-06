@@ -129,11 +129,12 @@ form.scan button[disabled]{opacity:.6;cursor:progress;transform:none}
 .progress{max-width:680px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:1rem 1.2rem;box-shadow:var(--shadow)}
 .progress b{display:block;margin-bottom:.25rem}.progress small{color:var(--muted)}
 .err{background:var(--panel);border-left:5px solid var(--bad);border-radius:var(--radius);padding:1rem 1.25rem;max-width:680px;margin:0 0 2rem;box-shadow:var(--shadow)}
-.report{display:grid;grid-template-columns:300px 1fr;gap:2rem;align-items:start;animation:fadeIn .4s ease-out}
+.report{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:2rem;align-items:start;width:100%;min-width:0;animation:fadeIn .4s ease-out}
+.report-cover,.report-content,.summary{min-width:0}
 .report-cover{grid-column:1/-1;display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;padding:1.5rem 1.65rem;margin:0;border:1px solid var(--line);border-top:6px solid var(--brand);border-radius:var(--radius);background:linear-gradient(135deg,rgba(37,99,235,.09),var(--panel) 52%);box-shadow:var(--shadow);break-inside:avoid}
 .report-brand{display:flex;align-items:center;gap:1.1rem}.report-product-logo{width:168px;height:auto;max-width:42vw}.report-corporate{display:flex;align-items:center;gap:.4rem;margin-top:.35rem;color:var(--muted);font-size:.75rem}.report-corporate img{height:17px;width:auto}.report-cover h2{margin:0;font-size:1.55rem}.report-cover p{margin:.18rem 0;color:var(--muted);font-size:.92rem}.report-ref{text-align:right;font:400 .78rem/1.55 var(--mono);color:var(--muted)}.report-ref strong,.report-ref span{display:block}.report-ref strong{color:var(--ink);font-size:.9rem}
 .report-section-label{margin:0 0 .75rem;color:var(--brand);font-size:.78rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
-.report-signature{margin:1.5rem 0 1rem;padding:1.25rem;border:1px solid var(--line);border-radius:var(--radius);background:linear-gradient(135deg,rgba(37,99,235,.06),var(--panel));display:flex;justify-content:space-between;gap:1.2rem;align-items:end;break-inside:avoid}.report-signature p{margin:0;color:var(--muted);font-size:.84rem;max-width:58ch}.signature-name{font:600 1.45rem/1.1 Georgia,serif;color:var(--ink);border-bottom:1px solid var(--ink);padding:0 1.5rem .3rem 0}.signature-role{font-size:.78rem;color:var(--muted);margin-top:.3rem}.print-footer{display:none}.print-note{flex:1 1 100%;margin:0;color:var(--muted);font-size:.78rem}
+.report-signature{margin:1.5rem 0 1rem;padding:1.25rem;border:1px solid var(--line);border-radius:var(--radius);background:linear-gradient(135deg,rgba(37,99,235,.06),var(--panel));display:flex;justify-content:space-between;gap:1.2rem;align-items:end;break-inside:avoid}.report-signature p{margin:0;color:var(--muted);font-size:.84rem;max-width:58ch}.signature-brand{border-bottom:1px solid var(--ink);padding:0 1.5rem .35rem 0}.signature-logo{display:block;width:150px;max-width:42vw;height:auto}.signature-role{font-size:.78rem;color:var(--muted);margin-top:.3rem}.print-footer{display:none}.print-note{flex:1 1 100%;margin:0;color:var(--muted);font-size:.78rem}
 .summary{
   position:sticky;
   top:1.5rem;
@@ -184,11 +185,11 @@ details.chk:hover{
   transform:translateY(-1px);
   box-shadow:0 6px 14px rgba(15, 23, 42, 0.08);
 }
-details.chk.pass{border-left-color:var(--ok)} details.chk.warn{border-left-color:var(--warn)} details.chk.fail{border-left-color:var(--bad)}
+details.chk.pass{border-left-color:var(--ok)} details.chk.warn{border-left-color:var(--warn)} details.chk.fail{border-left-color:var(--bad)} details.chk.unknown{border-left-color:var(--muted)}
 details.chk summary{cursor:pointer;list-style:none;display:flex;gap:.75rem;align-items:baseline;padding:.85rem 1.1rem}
 details.chk summary::-webkit-details-marker{display:none}
 .badge{font-size:.8rem;font-weight:600;min-width:5.5rem}
-.pass .badge{color:var(--ok)} .warn .badge{color:var(--warn)} .fail .badge{color:var(--bad)}
+.pass .badge{color:var(--ok)} .warn .badge{color:var(--warn)} .fail .badge{color:var(--bad)} .unknown .badge{color:var(--muted)}
 .ttl{font-weight:600;flex:1}
 .pts{font-family:var(--mono);font-size:.85rem;color:var(--muted)}
 .body{padding:0 1.1rem 1.1rem 7.25rem}
@@ -271,214 +272,6 @@ footer{border-top:1px solid var(--line);padding:1.5rem 0 2rem;color:var(--muted)
 
 <footer><div class="wrap"><div class="footer-brand"><img src="assets/img/web-auditor-logo.webp" alt="Web Auditor" class="footer-product-logo"><span class="footer-by">by</span><a href="https://greenpc.dev"><img src="assets/img/GPC-logo-pequeño.png" alt="Green PC" class="footer-greenpc"></a><span>· La nota es orientativa: no reemplaza una auditoría completa.</span></div></div></footer>
 
-<script nonce="<?= $nonce ?>">
-(() => {
-  const $ = id => document.getElementById(id);
-  const form = $('f'), input = $('u'), lang = $('lang'), btn = $('b'), out = $('out');
-  const serviceStatus = $('service-status'), serviceText = $('service-text'), limitNote = $('limit-note');
-  const LOCALES = {
-    es:{code:'es-EC',ready:'Listo para un nuevo análisis',available:'Análisis disponible',scan:'Analizar sitio',busy:'Análisis en curso',waiting:'Esperando para una nueva solicitud',wait:'Espera ',server:'Servidor listo. ',protection:'Protección activa. ',request:'Solicitud en curso. ',report:'Informe de seguridad web',automated:'Evaluación externa automatizada de la postura básica de seguridad.',executive:'Resumen ejecutivo',score:'de 100 puntos',risk:'Riesgo ',site:'Sitio',cipher:'Cifrado',issuer:'Emisor',response:'Respuesta',redirects:'Redirecciones',correct:'Correcto',improvable:'Mejorable',failure:'Falla',print:'Imprimir informe / Guardar PDF',printNote:'Para un PDF profesional: A4, una página por hoja y encabezados/pies del navegador desactivados.',priorities:'Corrige primero esto',priorityIntro:'Estas acciones producen la mayor mejora de seguridad.',fix:'Cómo corregirlo',issued:'Emitido',dateUnavailable:'Fecha no disponible',reference:'Referencia de informe',footer:'La nota es orientativa: no reemplaza una auditoría completa.',external:'Evaluación externa orientativa; no reemplaza un pentest.',reportFooter:'Green PC · Informe de seguridad web',signature:'Firma de emisión del informe',scope:'Alcance: evaluación externa automatizada del sitio indicado, sin acceso interno ni revisión de código. Para priorizar una corrección o realizar una auditoría profunda, contacta a Green PC.'},
-    en:{code:'en-GB',ready:'Ready for a new analysis',available:'Analysis available',scan:'Analyse site',busy:'Analysis in progress',waiting:'Waiting for a new request',wait:'Wait ',server:'Server ready. ',protection:'Protection active. ',request:'Request in progress. ',report:'Web security report',automated:'Automated external assessment of the basic security posture.',executive:'Executive summary',score:'out of 100 points',risk:'Risk ',site:'Site',cipher:'Cipher',issuer:'Issuer',response:'Response',redirects:'Redirects',correct:'Compliant',improvable:'Needs improvement',failure:'Failure',print:'Print report / Save PDF',printNote:'For a professional PDF: A4, one page per sheet, with browser headers and footers disabled.',priorities:'Fix these first',priorityIntro:'These actions deliver the greatest security improvement.',fix:'How to fix it',issued:'Issued',dateUnavailable:'Date unavailable',reference:'Report reference',footer:'The score is guidance only; it does not replace a complete audit.',external:'External guidance only; it does not replace a penetration test.',reportFooter:'Green PC · Web security report',signature:'Report issuance signature',scope:'Scope: automated external assessment of the indicated site, with no internal access or code review. Contact Green PC to prioritize remediation or conduct an in-depth audit.'},
-    fr:{code:'fr-FR',ready:'Prêt pour une nouvelle analyse',available:'Analyse disponible',scan:'Analyser le site',busy:'Analyse en cours',waiting:'En attente d’une nouvelle demande',wait:'Attendez ',server:'Serveur prêt. ',protection:'Protection active. ',request:'Demande en cours. ',report:'Rapport de sécurité web',automated:'Évaluation externe automatisée de la posture de sécurité de base.',executive:'Résumé exécutif',score:'sur 100 points',risk:'Risque ',site:'Site',cipher:'Chiffrement',issuer:'Émetteur',response:'Réponse',redirects:'Redirections',correct:'Conforme',improvable:'À améliorer',failure:'Défaillance',print:'Imprimer / Enregistrer en PDF',printNote:'Pour un PDF professionnel : A4, une page par feuille et en-têtes/pieds du navigateur désactivés.',priorities:'À corriger en priorité',priorityIntro:'Ces actions apportent la plus grande amélioration de sécurité.',fix:'Comment corriger',issued:'Émis',dateUnavailable:'Date indisponible',reference:'Référence du rapport',footer:'La note est indicative et ne remplace pas un audit complet.',external:'Évaluation externe indicative ; elle ne remplace pas un test d’intrusion.',reportFooter:'Green PC · Rapport de sécurité web',signature:'Signature d’émission du rapport',scope:'Portée : évaluation externe automatisée du site indiqué, sans accès interne ni revue de code. Contactez Green PC pour prioriser les corrections ou réaliser un audit approfondi.'},
-    it:{code:'it-IT',ready:'Pronto per una nuova analisi',available:'Analisi disponibile',scan:'Analizza il sito',busy:'Analisi in corso',waiting:'In attesa di una nuova richiesta',wait:'Attendi ',server:'Server pronto. ',protection:'Protezione attiva. ',request:'Richiesta in corso. ',report:'Rapporto di sicurezza web',automated:'Valutazione esterna automatizzata della postura di sicurezza di base.',executive:'Riepilogo esecutivo',score:'su 100 punti',risk:'Rischio ',site:'Sito',cipher:'Cifratura',issuer:'Emittente',response:'Risposta',redirects:'Reindirizzamenti',correct:'Conforme',improvable:'Da migliorare',failure:'Errore',print:'Stampa rapporto / Salva PDF',printNote:'Per un PDF professionale: A4, una pagina per foglio e intestazioni/piè di pagina del browser disattivati.',priorities:'Correggi prima questi punti',priorityIntro:'Queste azioni producono il maggiore miglioramento della sicurezza.',fix:'Come correggere',issued:'Emesso',dateUnavailable:'Data non disponibile',reference:'Riferimento rapporto',footer:'Il punteggio è solo indicativo e non sostituisce un audit completo.',external:'Valutazione esterna indicativa; non sostituisce un penetration test.',reportFooter:'Green PC · Rapporto di sicurezza web',signature:'Firma di emissione del rapporto',scope:'Ambito: valutazione esterna automatizzata del sito indicato, senza accesso interno né revisione del codice. Contatta Green PC per definire le priorità o svolgere un audit approfondito.'},
-    'pt-PT':{code:'pt-PT',ready:'Pronto para uma nova análise',available:'Análise disponível',scan:'Analisar site',busy:'Análise em curso',waiting:'A aguardar um novo pedido',wait:'Aguarde ',server:'Servidor pronto. ',protection:'Proteção ativa. ',request:'Pedido em curso. ',report:'Relatório de segurança web',automated:'Avaliação externa automatizada da postura básica de segurança.',executive:'Resumo executivo',score:'em 100 pontos',risk:'Risco ',site:'Site',cipher:'Cifra',issuer:'Emissor',response:'Resposta',redirects:'Redirecionamentos',correct:'Conforme',improvable:'A melhorar',failure:'Falha',print:'Imprimir relatório / Guardar PDF',printNote:'Para um PDF profissional: A4, uma página por folha e cabeçalhos/rodapés do navegador desativados.',priorities:'Corrija primeiro estes pontos',priorityIntro:'Estas ações proporcionam a maior melhoria de segurança.',fix:'Como corrigir',issued:'Emitido',dateUnavailable:'Data indisponível',reference:'Referência do relatório',footer:'A classificação é apenas indicativa e não substitui uma auditoria completa.',external:'Avaliação externa indicativa; não substitui um teste de intrusão.',reportFooter:'Green PC · Relatório de segurança web',signature:'Assinatura de emissão do relatório',scope:'Âmbito: avaliação externa automatizada do site indicado, sem acesso interno ou revisão de código. Contacte a Green PC para priorizar correções ou realizar uma auditoria aprofundada.'},
-    de:{code:'de-DE',ready:'Bereit für eine neue Analyse',available:'Analyse verfügbar',scan:'Website analysieren',busy:'Analyse läuft',waiting:'Warten auf eine neue Anfrage',wait:'Warten ',server:'Server bereit. ',protection:'Schutz aktiv. ',request:'Anfrage läuft. ',report:'Web-Sicherheitsbericht',automated:'Automatisierte externe Bewertung der grundlegenden Sicherheitslage.',executive:'Management-Zusammenfassung',score:'von 100 Punkten',risk:'Risiko ',site:'Website',cipher:'Verschlüsselung',issuer:'Aussteller',response:'Antwort',redirects:'Weiterleitungen',correct:'Konform',improvable:'Verbesserbar',failure:'Fehler',print:'Bericht drucken / PDF speichern',printNote:'Für ein professionelles PDF: A4, eine Seite pro Blatt sowie Browser-Kopf- und Fußzeilen deaktivieren.',priorities:'Zuerst beheben',priorityIntro:'Diese Maßnahmen bringen die größte Sicherheitsverbesserung.',fix:'So beheben Sie es',issued:'Ausgestellt',dateUnavailable:'Datum nicht verfügbar',reference:'Berichtsreferenz',footer:'Die Bewertung dient nur als Orientierung und ersetzt kein vollständiges Audit.',external:'Orientierende externe Bewertung; sie ersetzt keinen Penetrationstest.',reportFooter:'Green PC · Web-Sicherheitsbericht',signature:'Ausstellungsbestätigung des Berichts',scope:'Umfang: automatisierte externe Bewertung der angegebenen Website, ohne internen Zugang oder Code-Review. Kontaktieren Sie Green PC, um Korrekturen zu priorisieren oder ein vertieftes Audit durchzuführen.'}
-  };
-  const currentLocale = () => LOCALES[lang.value] || LOCALES.es;
-  let cooldownTimer = null;
-  const setServiceState = (state, text) => { serviceStatus.dataset.state = state; serviceText.textContent = text; };
-  const setLimitNote = (html) => { limitNote.replaceChildren(); limitNote.append(...html); };
-  const textNode = text => document.createTextNode(text);
-  function setReady() {
-    window.clearInterval(cooldownTimer);
-    btn.disabled = false;
-    btn.textContent = currentLocale().scan;
-    setServiceState('ready', currentLocale().ready);
-    setLimitNote([Object.assign(document.createElement('strong'), { textContent: currentLocale().server }), textNode('Puedes enviar una nueva solicitud. Límite: 10 análisis por hora y 4 por sitio por minuto.')]);
-  }
-  function startCooldown(seconds) {
-    window.clearInterval(cooldownTimer);
-    const endsAt = Date.now() + seconds * 1000;
-    const tick = () => {
-      const remaining = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
-      if (remaining === 0) { setReady(); return; }
-      const minutes = Math.floor(remaining / 60);
-      const time = String(minutes).padStart(2, '0') + ':' + String(remaining % 60).padStart(2, '0');
-      btn.disabled = true;
-      btn.textContent = currentLocale().wait + time;
-      setServiceState('busy', currentLocale().waiting);
-      setLimitNote([Object.assign(document.createElement('strong'), { textContent: currentLocale().protection }), textNode('Podrás solicitar otro análisis en ' + time + '.')]);
-    };
-    tick();
-    cooldownTimer = window.setInterval(tick, 1000);
-  }
-  const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text !== undefined) n.textContent = text; return n; };
-  const LABEL = status => ({ pass: currentLocale().correct, warn: currentLocale().improvable, fail: currentLocale().failure }[status]);
-
-  function render(d) {
-    const L = LOCALES[d.lang] || currentLocale();
-    document.documentElement.lang = d.lang || lang.value;
-    out.replaceChildren();
-    const wrap = el('div', 'report');
-
-    const s = el('aside', 'summary');
-    s.append(el('p', 'report-section-label', L.executive));
-    const risk = d.risk || (d.grade === 'A' || d.grade === 'B' ? 'bajo' : (d.grade === 'C' ? 'medio' : 'alto'));
-    s.append(el('p', 'grade g-' + d.grade, d.grade), el('p', 'score', d.score + ' ' + L.score), el('span', 'risk risk-' + risk, L.risk + risk));
-    const dl = el('dl');
-    const row = (k, v) => { if (v) { dl.append(el('dt', '', k), el('dd', '', v)); } };
-    row(L.site, d.host);
-    row('IP', d.ip);
-    if (d.tls && d.tls.protocol) row('TLS', d.tls.protocol);
-    if (d.tls && d.tls.cipher) row(L.cipher, d.tls.cipher);
-    if (d.tls && d.tls.issuer) row(L.issuer, d.tls.issuer);
-    row(L.response, d.status + ' · ' + d.ms + ' ms');
-    if (d.chain.length > 1) row(L.redirects, String(d.chain.length - 1));
-    s.append(dl);
-
-    const n = { pass: 0, warn: 0, fail: 0 };
-    d.checks.forEach(c => n[c.status]++);
-    s.append(el('p', 'tally', n.fail + ' fallas, ' + n.warn + ' mejorables, ' + n.pass + ' correctos.'), el('p', 'summary-note', 'Evaluación externa orientativa; no reemplaza un pentest.'));
-    const actions = el('div', 'report-actions');
-    const printBtn = el('button', '', L.print);
-    printBtn.type = 'button';
-    printBtn.addEventListener('click', () => window.print());
-    const printNote = el('p', 'print-note', L.printNote);
-    actions.append(printBtn, printNote);
-    s.append(actions);
-    if (d.grade !== 'A') {
-      const cta = el('div', 'cta', 'Podemos corregir esto por ti, sin tocar tu diseño ni tu contenido.');
-      const a = el('a', '', 'Hablar con Green PC');
-      a.href = 'https://greenpc.dev';
-      cta.append(document.createElement('br'), a);
-      s.append(cta);
-    }
-
-    const list = el('div', 'report-content');
-    const cover = el('section', 'report-cover');
-    const brand = el('div', 'report-brand');
-    const productLogo = document.createElement('img');
-    productLogo.src = 'assets/img/web-auditor-logo.webp'; productLogo.alt = 'Web Auditor'; productLogo.className = 'report-product-logo';
-    const title = el('div');
-    title.append(el('h2', '', L.report), el('p', '', L.automated));
-    const corporate = el('div', 'report-corporate');
-    corporate.append(el('span', '', 'by'), (() => { const logo = document.createElement('img'); logo.src = 'assets/img/GPC-logo-pequeño.png'; logo.alt = 'Green PC'; return logo; })());
-    title.append(corporate);
-    brand.append(productLogo, title);
-    const issuedAt = new Date(d.at || Date.now());
-    const issued = Number.isNaN(issuedAt.getTime()) ? 'Fecha no disponible' : new Intl.DateTimeFormat(L.code, { dateStyle: 'long', timeStyle: 'short', timeZone: 'UTC' }).format(issuedAt) + ' UTC';
-    const reference = el('div', 'report-ref');
-    reference.append(el('strong', '', d.report_id || L.reference), el('span', '', L.issued + ': ' + issued), el('span', '', 'Sitio: ' + d.host));
-    cover.append(brand, reference);
-    if (Array.isArray(d.priorities) && d.priorities.length) {
-      const priorities = el('section', 'priorities');
-      priorities.append(el('h2', '', L.priorities), el('p', '', L.priorityIntro));
-      const ordered = el('ol');
-      d.priorities.forEach(c => {
-        const item = el('li');
-        item.append(el('strong', '', c.title), el('span', '', c.detail));
-        ordered.append(item);
-      });
-      priorities.append(ordered);
-      list.append(priorities);
-    }
-    const groups = new Map();
-    d.checks.forEach(c => { if (!groups.has(c.group)) groups.set(c.group, []); groups.get(c.group).push(c); });
-    groups.forEach((items, name) => {
-      const g = el('section', 'group');
-      g.append(el('h2', '', name));
-      items.forEach(c => {
-        const det = el('details', 'chk ' + c.status);
-        if (c.status !== 'pass') det.open = true;
-        const sum = el('summary');
-        sum.append(el('span', 'badge', LABEL(c.status)), el('span', 'ttl', c.title), el('span', 'pts', c.earned + '/' + c.weight));
-        const body = el('div', 'body');
-        body.append(el('p', '', c.detail));
-        if (c.fix) { body.append(el('p', 'fixlbl', L.fix), el('pre', '', c.fix)); }
-        det.append(sum, body);
-        g.append(det);
-      });
-      list.append(g);
-    });
-
-    const signature = el('section', 'report-signature');
-    const signatureText = el('p', '', L.scope);
-    const signatureBlock = el('div');
-    signatureBlock.append(el('div', 'signature-name', 'Green PC'), el('div', 'signature-role', L.signature));
-    signature.append(signatureText, signatureBlock);
-    list.append(signature);
-    const printFooter = el('div', 'print-footer');
-    printFooter.append(el('span', '', L.reportFooter), el('span', '', d.report_id || L.reference));
-    wrap.append(cover, s, list, printFooter);
-    out.append(wrap);
-    out.setAttribute('aria-busy', 'false');
-    out.focus({ preventScroll: true });
-    wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  async function run(url) {
-    window.clearInterval(cooldownTimer);
-    btn.disabled = true; btn.textContent = currentLocale().busy + '…';
-    setServiceState('busy', currentLocale().busy);
-    setLimitNote([Object.assign(document.createElement('strong'), { textContent: currentLocale().request }), textNode('No cierres esta página; puede tardar hasta un minuto.')]);
-    out.setAttribute('aria-busy', 'true');
-    const progress = el('div', 'progress');
-    const title = el('b', '', 'Preparando análisis…');
-    const detail = el('small', '', 'Validando el destino de forma segura.');
-    progress.append(title, detail);
-    out.replaceChildren(progress);
-    const stages = [
-      ['Verificando transporte…', 'Certificado, protocolos TLS y redirecciones.'],
-      ['Revisando cabeceras…', 'CSP, cookies, CORS y controles del navegador.'],
-      ['Buscando exposiciones…', 'Archivos de configuración, copias y repositorios.'],
-      ['Analizando DNS y correo…', 'SPF, DMARC y CAA.']
-    ];
-    let stage = 0;
-    const stageTimer = window.setInterval(() => {
-      const current = stages[Math.min(stage++, stages.length - 1)];
-      title.textContent = current[0]; detail.textContent = current[1];
-    }, 1700);
-    let completed = false;
-    try {
-      const res = await fetch('api.php', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url, lang: lang.value })
-      });
-      const data = await res.json().catch(() => ({ error: 'Respuesta inesperada del servidor.' }));
-      if (!res.ok || data.error) {
-        const error = new Error(data.error || 'No se pudo completar el análisis.');
-        error.retryAfter = Number(data.retry_after) || Number(res.headers.get('Retry-After')) || 0;
-        throw error;
-      }
-      render(data);
-      completed = true;
-    } catch (e) {
-      const error = el('div', 'err', e.message);
-      error.setAttribute('role', 'alert');
-      out.replaceChildren(error);
-      out.setAttribute('aria-busy', 'false');
-      if (e.retryAfter > 0) {
-        startCooldown(e.retryAfter);
-      } else {
-        setServiceState('unavailable', 'Servicio temporalmente no disponible');
-        setLimitNote([Object.assign(document.createElement('strong'), { textContent: 'No se completó la solicitud. ' }), textNode('Revisa el dominio e inténtalo de nuevo en unos segundos.')]);
-      }
-      out.focus();
-    } finally {
-      window.clearInterval(stageTimer);
-      if (completed) setReady();
-    }
-  }
-
-  form.addEventListener('submit', e => {
-    e.preventDefault();
-    const v = input.value.trim();
-    document.documentElement.lang = lang.value;
-    if (!v) return;
-    history.replaceState(null, '', location.pathname);
-    run(v);
-  });
-
-})();
-</script>
+<script nonce="<?= $nonce ?>" src="assets/app.js"></script>
 </body>
 </html>

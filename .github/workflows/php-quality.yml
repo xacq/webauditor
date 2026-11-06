@@ -27,3 +27,5 @@ jobs:
           for test in tests/*.php; do
             php "$test"
           done
+      - name: Validate JavaScript localization runtime
+        run: node tests/i18n-runtime.js

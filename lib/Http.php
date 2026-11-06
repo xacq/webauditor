@@ -4,8 +4,12 @@ declare(strict_types=1);
 /* ---------- HTTP ---------- */
 
 /** Una petición GET sin seguir redirecciones; se fija la IP validada y se descarta el cuerpo. */
-function fetch_once(string $url, array $requestHeaders = [], ?string $pinnedIp = null, bool $verifyTls = false): array
+function fetch_once(string $url, array $requestHeaders = [], ?string $pinnedIp = null, bool $verifyTls = false, ?float $deadline = null): array
 {
+    $timeout = timeout_for_deadline($deadline, 10);
+    if ($timeout < 1) {
+        throw new RuntimeException('Se agotó el tiempo total del análisis.');
+    }
     $t     = parse_target($url);
     $https = $t['scheme'] === 'https';
     $port  = $t['port'];
@@ -17,8 +21,8 @@ function fetch_once(string $url, array $requestHeaders = [], ?string $pinnedIp =
     curl_setopt_array($ch, [
         CURLOPT_RESOLVE        => [$t['host'] . ':' . $port . ':' . $ip],
         CURLOPT_FOLLOWLOCATION => false,
-        CURLOPT_CONNECTTIMEOUT => 5,
-        CURLOPT_TIMEOUT        => 10,
+        CURLOPT_CONNECTTIMEOUT => min(5, $timeout),
+        CURLOPT_TIMEOUT        => $timeout,
         CURLOPT_PROTOCOLS      => CURLPROTO_HTTP | CURLPROTO_HTTPS,
         CURLOPT_SSL_VERIFYPEER => $https && $verifyTls,
         CURLOPT_SSL_VERIFYHOST => ($https && $verifyTls) ? 2 : 0,
@@ -67,11 +71,11 @@ function absolutize(string $base, string $loc): string
 }
 
 /** Sigue hasta 5 redirecciones revalidando cada salto. */
-function fetch_follow(string $url, ?string $firstIp = null, bool $verifyTls = false): array
+function fetch_follow(string $url, ?string $firstIp = null, bool $verifyTls = false, ?float $deadline = null): array
 {
     $chain = [];
     for ($i = 0; $i <= 5; $i++) {
-        $r       = fetch_once($url, [], $i === 0 ? $firstIp : null, $verifyTls);
+        $r       = fetch_once($url, [], $i === 0 ? $firstIp : null, $verifyTls, $deadline);
         $chain[] = ['url' => $url, 'status' => $r['status']];
         $loc     = $r['headers']['location'][0] ?? null;
         if ($r['status'] >= 300 && $r['status'] < 400 && $loc) {
