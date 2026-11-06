@@ -123,6 +123,9 @@ form.scan button[disabled]{opacity:.6;cursor:progress;transform:none}
 .report-actions{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--line)}
 .report-actions button{font:600 .88rem var(--sans);border:1px solid var(--line);border-radius:6px;padding:.55rem .7rem;background:var(--panel);color:var(--ink);cursor:pointer}
 .report-actions button:hover{border-color:var(--brand);color:var(--brand)}
+.report-actions button.primary{border-color:var(--brand);background:linear-gradient(180deg,var(--brand),var(--brand-dark));color:#fff;box-shadow:0 2px 7px rgba(37,99,235,.25)}
+.report-actions button.primary:hover{color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.32)}
+.report-actions button:disabled{opacity:.6;cursor:progress;box-shadow:none}
 .priorities{background:linear-gradient(135deg,rgba(37,99,235,.09),rgba(255,255,255,.4));border:1px solid rgba(37,99,235,.22);border-radius:var(--radius);padding:1.15rem 1.2rem;margin:0 0 2rem}
 .priorities h2{margin:0 0 .25rem}.priorities>p{color:var(--muted);font-size:.92rem;margin:.2rem 0 .8rem}
 .priorities ol{margin:.4rem 0 0;padding-left:1.35rem}.priorities li{padding:.45rem 0}.priorities strong{display:block}.priorities span{font-size:.9rem;color:var(--muted)}
@@ -272,6 +275,9 @@ footer{border-top:1px solid var(--line);padding:1.5rem 0 2rem;color:var(--muted)
 
 <footer><div class="wrap"><div class="footer-brand"><img src="assets/img/web-auditor-logo.webp" alt="Web Auditor" class="footer-product-logo"><span class="footer-by">by</span><a href="https://greenpc.dev"><img src="assets/img/GPC-logo-pequeño.png" alt="Green PC" class="footer-greenpc"></a><span>· La nota es orientativa: no reemplaza una auditoría completa.</span></div></div></footer>
 
+<script nonce="<?= $nonce ?>" src="assets/vendor/pdfmake/pdfmake.min.js"></script>
+<script nonce="<?= $nonce ?>" src="assets/vendor/pdfmake/vfs_fonts.js"></script>
+<script nonce="<?= $nonce ?>" src="assets/pdf-report.js"></script>
 <script nonce="<?= $nonce ?>" src="assets/app.js"></script>
 </body>
 </html>

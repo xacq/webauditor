@@ -10,6 +10,14 @@
     'pt-PT':{code:'pt-PT',ready:'Pronto para uma nova análise',available:'Análise disponível',scan:'Analisar site',busy:'Análise em curso',waiting:'A aguardar um novo pedido',wait:'Aguarde ',server:'Servidor pronto. ',protection:'Proteção ativa. ',request:'Pedido em curso. ',report:'Relatório de segurança web',automated:'Avaliação externa automatizada da postura básica de segurança.',executive:'Resumo executivo',score:'em 100 pontos',risk:'Risco ',site:'Site',cipher:'Cifra',issuer:'Emissor',response:'Resposta',redirects:'Redirecionamentos',correct:'Conforme',improvable:'A melhorar',failure:'Falha',print:'Imprimir relatório / Guardar PDF',printNote:'Para um PDF profissional: A4, uma página por folha e cabeçalhos/rodapés do navegador desativados.',priorities:'Corrija primeiro estes pontos',priorityIntro:'Estas ações proporcionam a maior melhoria de segurança.',fix:'Como corrigir',issued:'Emitido',dateUnavailable:'Data indisponível',reference:'Referência do relatório',footer:'A classificação é apenas indicativa e não substitui uma auditoria completa.',external:'Avaliação externa indicativa; não substitui um teste de intrusão.',reportFooter:'Green PC · Relatório de segurança web',signature:'Assinatura de emissão do relatório',scope:'Âmbito: avaliação externa automatizada do site indicado, sem acesso interno ou revisão de código. Contacte a Green PC para priorizar correções ou realizar uma auditoria aprofundada.'},
     de:{code:'de-DE',ready:'Bereit für eine neue Analyse',available:'Analyse verfügbar',scan:'Website analysieren',busy:'Analyse läuft',waiting:'Warten auf eine neue Anfrage',wait:'Warten ',server:'Server bereit. ',protection:'Schutz aktiv. ',request:'Anfrage läuft. ',report:'Web-Sicherheitsbericht',automated:'Automatisierte externe Bewertung der grundlegenden Sicherheitslage.',executive:'Management-Zusammenfassung',score:'von 100 Punkten',risk:'Risiko ',site:'Website',cipher:'Verschlüsselung',issuer:'Aussteller',response:'Antwort',redirects:'Weiterleitungen',correct:'Konform',improvable:'Verbesserbar',failure:'Fehler',print:'Bericht drucken / PDF speichern',printNote:'Für ein professionelles PDF: A4, eine Seite pro Blatt sowie Browser-Kopf- und Fußzeilen deaktivieren.',priorities:'Zuerst beheben',priorityIntro:'Diese Maßnahmen bringen die größte Sicherheitsverbesserung.',fix:'So beheben Sie es',issued:'Ausgestellt',dateUnavailable:'Datum nicht verfügbar',reference:'Berichtsreferenz',footer:'Die Bewertung dient nur als Orientierung und ersetzt kein vollständiges Audit.',external:'Orientierende externe Bewertung; sie ersetzt keinen Penetrationstest.',reportFooter:'Green PC · Web-Sicherheitsbericht',signature:'Ausstellungsbestätigung des Berichts',scope:'Umfang: automatisierte externe Bewertung der angegebenen Website, ohne internen Zugang oder Code-Review. Kontaktieren Sie Green PC, um Korrekturen zu priorisieren oder ein vertieftes Audit durchzuführen.'}
   };
+  const PDF_ACTION_COPY = {
+    es:{download:'Descargar PDF',generating:'Generando PDF…',ready:'PDF descargado',error:'No se pudo generar el PDF. Inténtalo de nuevo.',print:'Imprimir',note:'PDF A4 profesional con portada, resumen, hallazgos, numeración y firma Green PC.'},
+    en:{download:'Download PDF',generating:'Generating PDF…',ready:'PDF downloaded',error:'The PDF could not be generated. Please try again.',print:'Print',note:'Professional A4 PDF with cover, overview, findings, page numbers and Green PC signature.'},
+    fr:{download:'Télécharger le PDF',generating:'Génération du PDF…',ready:'PDF téléchargé',error:'Impossible de générer le PDF. Veuillez réessayer.',print:'Imprimer',note:'PDF A4 professionnel avec couverture, synthèse, résultats, pagination et signature Green PC.'},
+    it:{download:'Scarica PDF',generating:'Generazione PDF…',ready:'PDF scaricato',error:'Impossibile generare il PDF. Riprova.',print:'Stampa',note:'PDF A4 professionale con copertina, riepilogo, risultati, numerazione e firma Green PC.'},
+    'pt-PT':{download:'Descarregar PDF',generating:'A gerar PDF…',ready:'PDF descarregado',error:'Não foi possível gerar o PDF. Tente novamente.',print:'Imprimir',note:'PDF A4 profissional com capa, resumo, resultados, numeração e assinatura Green PC.'},
+    de:{download:'PDF herunterladen',generating:'PDF wird erstellt…',ready:'PDF heruntergeladen',error:'Die PDF-Datei konnte nicht erstellt werden. Bitte erneut versuchen.',print:'Drucken',note:'Professionelles A4-PDF mit Deckblatt, Übersicht, Ergebnissen, Seitenzahlen und Green-PC-Signatur.'},
+  };
   const UNKNOWN_LABELS = { es:'No verificado', en:'Not verified', fr:'Non vérifié', it:'Non verificato', 'pt-PT':'Não verificado', de:'Nicht geprüft' };
   const COVERAGE_LABELS = { es:'Cobertura', en:'Coverage', fr:'Couverture', it:'Copertura', 'pt-PT':'Cobertura', de:'Abdeckung' };
   const DURATION_LABELS = { es:'Duración total', en:'Total duration', fr:'Durée totale', it:'Durata totale', 'pt-PT':'Duração total', de:'Gesamtdauer' };
@@ -351,12 +359,69 @@
     const n = { pass: 0, warn: 0, fail: 0, unknown: 0 };
     d.checks.forEach(c => n[c.status]++);
     s.append(el('p', 'tally', T.tally(n)), el('p', 'summary-note', T.note));
+    const actionCopy = PDF_ACTION_COPY[d.lang] || PDF_ACTION_COPY.es;
+    const buildPdfPayload = () => ({
+      lang: d.lang || 'es',
+      localeCode: L.code,
+      title: L.report,
+      subtitle: L.automated,
+      host: d.host,
+      ip: d.ip,
+      tlsProtocol: d.tls && d.tls.protocol,
+      cipher: d.tls && d.tls.cipher,
+      issuer: d.tls && d.tls.issuer,
+      response: d.status + ' · ' + d.ms + ' ms',
+      duration: Number.isFinite(d.analysis_ms) ? (d.analysis_ms / 1000).toFixed(1) + ' s' : '',
+      coverage: Number.isFinite(d.coverage) ? d.coverage : null,
+      reportId: d.report_id || L.reference,
+      issued,
+      grade: d.grade,
+      score: d.score,
+      risk,
+      riskLabel,
+      counts: n,
+      labels: { score:L.score, site:L.site, cipher:L.cipher, issuer:L.issuer, response:L.response, reference:L.reference, issued:L.issued },
+      priorities: (d.priorities || []).map(check => {
+        const message = checkMessage(check);
+        return { title:checkTitle(check), detail:message.detail };
+      }),
+      checks: d.checks.map(check => {
+        const message = checkMessage(check);
+        return {
+          id:check.id, groupKey:check.group_id || check.group, group:groupTitle(check),
+          title:checkTitle(check), status:check.status, statusLabel:LABEL(check.status, d.lang),
+          earned:check.earned, weight:check.weight, detail:message.detail, fix:message.fix,
+        };
+      }),
+      scope:L.scope,
+      signature:L.signature,
+      assetUrls:{ productLogo:'assets/img/web-auditor-logo.webp', corporateLogo:'assets/img/GPC-logo-pequeño.png' },
+    });
     const actions = el('div', 'report-actions');
-    const printBtn = el('button', '', L.print);
+    const downloadBtn = el('button', 'primary', actionCopy.download);
+    downloadBtn.type = 'button';
+    const actionStatus = el('p', 'print-note', actionCopy.note);
+    actionStatus.setAttribute('aria-live', 'polite');
+    downloadBtn.addEventListener('click', async () => {
+      const original = downloadBtn.textContent;
+      downloadBtn.disabled = true;
+      downloadBtn.textContent = actionCopy.generating;
+      actionStatus.textContent = actionCopy.generating;
+      try {
+        const filename = await window.WebAuditorPdf.download(buildPdfPayload());
+        actionStatus.textContent = actionCopy.ready + ' · ' + filename;
+      } catch (error) {
+        console.error(error);
+        actionStatus.textContent = actionCopy.error;
+      } finally {
+        downloadBtn.disabled = false;
+        downloadBtn.textContent = original;
+      }
+    });
+    const printBtn = el('button', '', actionCopy.print);
     printBtn.type = 'button';
     printBtn.addEventListener('click', () => window.print());
-    const printNote = el('p', 'print-note', L.printNote);
-    actions.append(printBtn, printNote);
+    actions.append(downloadBtn, printBtn, actionStatus);
     s.append(actions);
     if (d.grade !== 'A') {
       const cta = el('div', 'cta', T.cta);

@@ -1,7 +1,10 @@
 # Local runtime data and developer configuration
-.env
-.env.*
 !.env.example
 *.log
 /vendor/
+/.tmp/
+/tmp/
+/output/
 /.phpunit.result.cache
+config.bat
+node_modules

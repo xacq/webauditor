@@ -53,7 +53,8 @@ Después del análisis, la interfaz muestra:
 - Portada de informe con marca, fecha UTC, dominio auditado y referencia única.
 - Firma visual de emisión de **Green PC** en el informe imprimible/PDF.
 - Selector de idioma para interfaz e informe: español, inglés, francés, italiano, portugués europeo y alemán.
-- Botón **Imprimir / Guardar PDF** para entregar un informe sin almacenar resultados.
+- Descarga directa de un **PDF A4 profesional** con portada, resumen ejecutivo, prioridades, perfil técnico, resultados detallados, numeración y firma visual de Green PC.
+- Opción de impresión independiente como alternativa; la generación del PDF ocurre en el navegador y no almacena ni reenvía los resultados.
 
 La firma incluida acredita la emisión visual de Green PC; no es una firma electrónica certificada. La referencia identifica solo la ejecución actual y no conserva una copia del informe.
 
@@ -117,6 +118,7 @@ El workflow [PHP quality](.github/workflows/php-quality.yml) valida sintaxis en 
 - `tests/audit-summary.php`: nivel de riesgo y orden de prioridades.
 - `tests/probe-classification.php`: archivos sensibles, soft-404 y resultados no verificables.
 - `tests/i18n-catalog.php` y `tests/i18n-runtime.js`: cobertura y ejecución de los catálogos traducidos.
+- `tests/pdf-report.js`: estructura A4, contenido, metadatos y paginación del informe descargable en los seis idiomas.
 
 ## Estructura
 
@@ -125,6 +127,8 @@ webauditor/
 ├── api.php                 # Endpoint, orquestación y puntuación
 ├── index.php               # Estructura, estilos y carga de la interfaz
 ├── assets/app.js           # Lógica de interfaz y catálogos de traducción
+├── assets/pdf-report.js    # Generación del PDF profesional descargable
+├── assets/vendor/pdfmake/  # Motor PDF cliente y licencia MIT
 ├── lib/
 │   ├── Target.php          # Validación de destino y resolución segura
 │   ├── Http.php            # Transporte HTTP y redirecciones
@@ -152,3 +156,5 @@ Activa `TRUST_CF_HEADER` únicamente cuando el servidor de origen reciba tráfic
 ## Licencia y crédito
 
 Desarrollado por [Green PC](https://greenpc.dev).
+
+La generación local del PDF utiliza [pdfmake 0.3.11](https://github.com/bpampuch/pdfmake), distribuido bajo licencia MIT e incluido con su licencia en `assets/vendor/pdfmake/LICENSE`.

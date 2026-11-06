@@ -28,4 +28,6 @@ jobs:
             php "$test"
           done
       - name: Validate JavaScript localization runtime
-        run: node tests/i18n-runtime.js
+        run: |
+          node tests/i18n-runtime.js
+          node tests/pdf-report.js
