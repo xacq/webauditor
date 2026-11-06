@@ -1,0 +1,7 @@
+# Local runtime data and developer configuration
+.env
+.env.*
+!.env.example
+*.log
+/vendor/
+/.phpunit.result.cache
